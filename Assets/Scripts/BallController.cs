@@ -5,12 +5,17 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
+    public GameManager gameManager;
+
     public Rigidbody rb;
     public float speed = 15;
 
     private bool isTraveling;
     private Vector3 travelDirection;
     private Vector3 nextCollisionPosition;
+    private AudioSource playerAudio;
+
+    public AudioClip swipeSound;
 
     public int minSwipeRecognition = 500;
     private Vector2 swipePosLastFrame;
@@ -21,14 +26,24 @@ public class BallController : MonoBehaviour
 
     private void Start()
     {
+        gameManager = GameManager.singleton;
+        //gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        playerAudio = GetComponent<AudioSource>();
         solveColor = Random.ColorHSV(0.5f, 1);
         GetComponent<MeshRenderer>().material.color = solveColor;
     }
 
     private void FixedUpdate()
     {
+        if (gameManager.isGameOver)
+        {
+            isTraveling = false;
+            rb.velocity = Vector3.zero;
+            return;
+        }
         if (isTraveling)
         {
+            playerAudio.PlayOneShot(swipeSound, 1.0f);
             rb.velocity = speed * travelDirection;
         }
 
@@ -59,6 +74,7 @@ public class BallController : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
+            
             swipePosCurrentFrame = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 
             if (swipePosCurrentFrame != Vector2.zero)
